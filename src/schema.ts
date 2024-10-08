@@ -24,6 +24,8 @@ export const VSCodeHighlightSchema=Schema.Struct({
 export const TokenSchema=Schema.Array(VSCodeHighlightSchema)
 
 export const VSCodeThemeSchema = Schema.Struct({
+	name:Schema.String,
+	author:Schema.String,
 	colors: ColorSchema,
 	tokenColors:TokenSchema
 });
