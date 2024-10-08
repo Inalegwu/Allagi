@@ -1,33 +1,33 @@
 import { Schema } from "@effect/schema";
 
-const VSCodeScopeSettingSchema=Schema.Struct({
-	foreground:Schema.String.pipe(Schema.optional),
-	background:Schema.String.pipe(Schema.optional),
-	fontFamily:Schema.String.pipe(Schema.optional)
-}).pipe(Schema.rename({
-	fontFamily:"font_family"
-}))
+const VSCodeScopeSetting = Schema.Struct({
+	foreground: Schema.String.pipe(Schema.optional),
+	background: Schema.String.pipe(Schema.optional),
+	fontFamily: Schema.String.pipe(Schema.optional),
+}).pipe(
+	Schema.rename({
+		fontFamily: "font_family",
+	}),
+);
 
-export const ColorSchema = Schema.Record({
+export const Colors = Schema.Record({
 	key: Schema.String,
 	value: Schema.String,
 });
 
-const MultipleSchema=Schema.Array(Schema.String);
-const SingleSchema=Schema.String
+const MultipleSchema = Schema.Array(Schema.String);
+const SingleSchema = Schema.String;
 
-export const VSCodeHighlightSchema=Schema.Struct({
-	scope:Schema.Union(MultipleSchema,SingleSchema).pipe(Schema.optional),
-	settings:VSCodeScopeSettingSchema
-})
-
-export const TokenSchema=Schema.Array(VSCodeHighlightSchema)
-
-export const VSCodeThemeSchema = Schema.Struct({
-	name:Schema.String,
-	author:Schema.String,
-	colors: ColorSchema,
-	tokenColors:TokenSchema
+export const VSCodeHighlightSchema = Schema.Struct({
+	scope: Schema.Union(MultipleSchema, SingleSchema).pipe(Schema.optional),
+	settings: VSCodeScopeSetting,
 });
 
-export type VSCodeTheme = typeof VSCodeThemeSchema.Type;
+export const Token = Schema.Array(VSCodeHighlightSchema);
+
+export const VSCodeTheme = Schema.Struct({
+	name: Schema.String,
+	author: Schema.String,
+	colors: Colors,
+	tokenColors: Token,
+});
