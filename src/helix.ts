@@ -20,9 +20,19 @@ const toHelix = Command.make(
 				Bun.file(vscodeThemePath).text(),
 			);
 
-			const schema = yield* Schema.decodeUnknown(VSCodeThemeSchema)(file);
-			yield* Console.log(schema);
-		}),
+			const colors = JSON.parse(file).colors;
+
+			const schema = yield* Schema.decodeUnknown(VSCodeThemeSchema)(
+				JSON.parse(file),
+			);
+
+			yield* Console.log(schema.colors);
+		}).pipe(
+			Effect.tapError((error) => Effect.logError(error)),
+			Effect.annotateLogs({
+				command: "helix",
+			}),
+		),
 );
 
 export default toHelix;
