@@ -1,6 +1,6 @@
 import { Args, Command } from "@effect/cli";
-import { Console, Effect } from "effect";
-import { VSCodeThemeSchema } from "./schema";
+import { Console, Effect, Option } from "effect";
+import { VSCodeThemeSchema, type VSCodeTheme } from "./schema";
 import { Schema } from "@effect/schema";
 
 const vscodeThemePath = Args.path({
@@ -20,11 +20,22 @@ const toHelix = Command.make(
 				Bun.file(vscodeThemePath).text(),
 			);
 
-			const schema = yield* Schema.decodeUnknown(VSCodeThemeSchema)(
+			const schema = Schema.decodeUnknownOption(VSCodeThemeSchema)(
 				JSON.parse(file),
+				{
+					onExcessProperty: "ignore",
+				},
 			);
 
-			yield* Console.log(schema.colors);
+			yield* Option.match(schema, {
+				onSome: (a) => Effect.gen(function* () {
+					yield* Effect.logInfo(a);
+				}),
+				onNone: () =>
+					Effect.gen(function* () {
+						yield* Effect.logInfo("No theme color found");
+					}),
+			});
 		}).pipe(
 			Effect.tapError((error) => Effect.logError(error)),
 			Effect.annotateLogs({
