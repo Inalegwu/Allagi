@@ -28,9 +28,10 @@ const toHelix = Command.make(
 			);
 
 			yield* Option.match(schema, {
-				onSome: (a) => Effect.gen(function* () {
-				yield* Effect.logInfo(a);
-				}),
+				onSome: (a) =>
+					Effect.gen(function* () {
+						yield* Effect.logInfo(a);
+					}),
 				onNone: () =>
 					Effect.gen(function* () {
 						yield* Effect.logInfo("Unable To Read Theme");
