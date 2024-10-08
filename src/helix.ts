@@ -20,8 +20,6 @@ const toHelix = Command.make(
 				Bun.file(vscodeThemePath).text(),
 			);
 
-			const colors = JSON.parse(file).colors;
-
 			const schema = yield* Schema.decodeUnknown(VSCodeThemeSchema)(
 				JSON.parse(file),
 			);
