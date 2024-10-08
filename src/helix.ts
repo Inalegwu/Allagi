@@ -11,14 +11,10 @@ const outputPath = Args.path({
 	name: "Helix Theme Output Path",
 });
 
-const themeGithub = Args.text({
-	name: "VSCode Theme Github",
-}).pipe(Args.optional);
-
 const toHelix = Command.make(
 	"helix",
-	{ vscodeThemePath, outputPath, themeGithub },
-	({ vscodeThemePath, outputPath, themeGithub }) =>
+	{ vscodeThemePath, outputPath },
+	({ vscodeThemePath, outputPath }) =>
 		Effect.gen(function* () {
 			yield* Option.match(vscodeThemePath, {
 				onSome: (themePath) =>
@@ -38,18 +34,7 @@ const toHelix = Command.make(
 					}),
 				onNone: () =>
 					Effect.gen(function* () {
-						yield* Option.match(themeGithub, {
-							onSome: (githubUrl) =>
-								Effect.gen(function* () {
-									yield* Console.log(githubUrl);
-								}),
-							onNone: () =>
-								Effect.gen(function* () {
-									yield* Effect.logError(
-										"Neither 'Theme Github Url' nor 'Theme Path' discovered",
-									);
-								}),
-						});
+						yield* Effect.logError("Incomplete Arguments Provided");
 					}),
 			});
 		}).pipe(
