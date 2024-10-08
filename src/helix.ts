@@ -1,6 +1,6 @@
 import { Args, Command } from "@effect/cli";
 import { Console, Effect, Option } from "effect";
-import { VSCodeThemeSchema, type VSCodeTheme } from "./schema";
+import { VSCodeThemeSchema, type VSCodeTheme } from "./schema.vs";
 import { Schema } from "@effect/schema";
 
 const vscodeThemePath = Args.path({
@@ -29,11 +29,11 @@ const toHelix = Command.make(
 
 			yield* Option.match(schema, {
 				onSome: (a) => Effect.gen(function* () {
-					yield* Effect.logInfo(a);
+				yield* Effect.logInfo(a);
 				}),
 				onNone: () =>
 					Effect.gen(function* () {
-						yield* Effect.logInfo("No theme color found");
+						yield* Effect.logInfo("Unable To Read Theme");
 					}),
 			});
 		}).pipe(
