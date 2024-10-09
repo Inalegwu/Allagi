@@ -32,25 +32,7 @@ const ScopeParam = Schema.Struct({
 const ScopeValue = Schema.Union(Schema.String, ScopeParam);
 
 const Palette = Schema.Record({
-	key: Schema.Literal(
-		"default",
-		"black",
-		"red",
-		"yellow",
-		"green",
-		"blue",
-		"magenta",
-		"cyan",
-		"gray",
-		"light-red",
-		"light-green",
-		"light-yellow",
-		"light-blue",
-		"light-magenta",
-		"light-cyan",
-		"light-gray",
-		"white",
-	),
+	key: Schema.String,
 	value: Schema.String,
 });
 
@@ -60,8 +42,8 @@ const Scope = Schema.Record({
 });
 
 export const HelixTheme = Schema.Struct({
-	palette: Palette,
 	scope: Scope,
+	palette: Palette,
 });
 
 type HelixTheme = typeof HelixTheme.Type;

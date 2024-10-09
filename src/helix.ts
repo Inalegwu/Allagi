@@ -4,6 +4,8 @@ import { Array, Effect, Data } from "effect";
 import { VSCodeTheme } from "./schema.vs";
 import { convertHexToRGB, determineColorSpace } from "./utils";
 import { TomlClient } from "./parser/toml";
+import { HelixTheme } from "./schema.hx";
+import { JSONClient } from "./parser/json";
 
 class HelixError extends Data.TaggedError("helix-error")<{
 	cause: unknown;
@@ -16,6 +18,7 @@ const inputPath = Args.path({
 const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 	Effect.gen(function* () {
 		const toml = yield* TomlClient;
+		const json = yield* JSONClient;
 		yield* Effect.logInfo(`Attempting to Convert ${inputPath} to Helix Theme`);
 		const file = yield* Effect.tryPromise(() => Bun.file(inputPath).text());
 
@@ -53,6 +56,16 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 		const greens = palette.filter((a) => a.colorSpace === "green");
 		const grays = palette.filter((a) => a.colorSpace === "gray");
 
+		const red = reds.reduce((prev, next) =>
+			prev.rgb.r < next.rgb.r ? next : prev,
+		);
+		const green = greens.reduce((prev, next) =>
+			prev.rgb.g < next.rgb.g ? next : prev,
+		);
+		const blue = reds.reduce((prev, next) =>
+			prev.rgb.b < next.rgb.b ? next : prev,
+		);
+
 		const foregroundColor = palette.find(
 			(color) => color.key === "editor.foreground",
 		);
@@ -75,11 +88,24 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 			`Preparing to convert and save to ${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
 		);
 
+		const newTheme = yield* Schema.encode(HelixTheme)({
+			scope: {},
+			palette: {
+				bg: backgroundColor?.hex!,
+				fg: foregroundColor?.hex!,
+				red: red.hex,
+				green: green.hex,
+				blue: blue.hex,
+			},
+		});
+
+		const asString = yield* json.stringify(newTheme);
+
 		yield* Effect.try({
 			try: () =>
 				Bun.write(
 					`${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
-					"",
+					asString,
 				),
 			catch: (error) => new HelixError({ cause: error }),
 		});
