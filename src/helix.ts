@@ -1,12 +1,13 @@
 import { Args, Command } from "@effect/cli";
 import { Schema } from "@effect/schema";
-import { Array, Effect } from "effect";
+import { Array, Effect, Data } from "effect";
 import { VSCodeTheme } from "./schema.vs";
 import { convertHexToRGB, determineColorSpace } from "./utils";
+import { TomlClient } from "./parser/toml";
 
-// class HelixError extends Data.TaggedError("helix-error")<{
-// 	cause: unknown;
-// }> {}
+class HelixError extends Data.TaggedError("helix-error")<{
+	cause: unknown;
+}> {}
 
 const inputPath = Args.path({
 	name: "Theme Path",
@@ -14,6 +15,7 @@ const inputPath = Args.path({
 
 const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 	Effect.gen(function* () {
+		const toml = yield* TomlClient;
 		yield* Effect.logInfo(`Attempting to Convert ${inputPath} to Helix Theme`);
 		const file = yield* Effect.tryPromise(() => Bun.file(inputPath).text());
 
@@ -48,11 +50,14 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 			`Preparing to convert and save to ${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
 		);
 
-		// const reds = palette.filter((color) => color.colorSpace === "red");
-		// const greens = palette.filter((color) => color.colorSpace === "green");
-		// const blues = palette.filter((color) => color.colorSpace === "blue");
-
-		// yield* Console.log(schema);
+		yield* Effect.try({
+			try: () =>
+				Bun.write(
+					`${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
+					"",
+				),
+			catch: (error) => new HelixError({ cause: error }),
+		});
 	}).pipe(
 		Effect.tapError((error) =>
 			Effect.logError(
