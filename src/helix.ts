@@ -1,5 +1,5 @@
 import { Args, Command } from "@effect/cli";
-import { Effect, Array, Record } from "effect";
+import { Effect, Array } from "effect";
 import { VSCodeTheme } from "./schema.vs";
 import { Schema } from "@effect/schema";
 import { convertHexToRGB, determineColorSpace } from "./utils";
@@ -49,7 +49,11 @@ const toHelix = Command.make(
 					colorSpace: determineColorSpace({ ...value.rgb }),
 				}));
 
-			yield* Effect.logInfo({ palette });
+			const reds = palette.filter((color) => color.colorSpace === "red");
+			const greens = palette.filter((color) => color.colorSpace === "green");
+			const blues = palette.filter((color) => color.colorSpace === "blue");
+
+			yield* Effect.logInfo({ reds, greens, blues });
 
 			// yield* Console.log(schema);
 		}).pipe(Effect.tapError((error) => Effect.logError(error))),

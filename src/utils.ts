@@ -20,10 +20,10 @@ export const determineColorSpace = ({
 	b,
 }: { r: number; b: number; g: number }) => {
 	return r > g && r > b
-		? "redish"
+		? "red"
 		: g > r && g > b
-			? "greenish"
+			? "green"
 			: b > r && b > g
-				? "blueish"
-				: "grayish";
+				? "blue"
+				: "gray";
 };
