@@ -5,11 +5,11 @@ import { Schema } from "@effect/schema";
 import { convertHexToRGB, determineColorSpace } from "./utils";
 
 const vscodeThemePath = Args.path({
-	name: "VSCode Theme Path",
+	name: "Theme Path",
 });
 
 const outputPath = Args.path({
-	name: "Helix Theme Output Path",
+	name: "Output Path",
 });
 
 const toHelix = Command.make(

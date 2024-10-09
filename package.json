@@ -4,7 +4,7 @@
 	"type": "module",
 	"version": "0.0.1",
 	"scripts": {
-		"build": "bun build --target=node --compile src/main.ts --outfile nutella"
+		"build": "bun build --target=node --compile --minify --sourcemap --bytecode src/main.ts --outfile nutella"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.3",
