@@ -38,12 +38,36 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 				rgb: convertHexToRGB(v[1]),
 				hex: v[1],
 			}))
-			.map((value) => ({
-				key: value.key,
-				rgb: value.rgb,
-				hex: value.hex,
-				colorSpace: determineColorSpace({ ...value.rgb }),
-			}));
+			.map(
+				(value) =>
+					({
+						key: value.key,
+						rgb: value.rgb,
+						hex: value.hex,
+						colorSpace: determineColorSpace({ ...value.rgb }),
+					}) as const,
+			);
+
+		const reds = palette.filter((a) => a.colorSpace === "red");
+		const blues = palette.filter((a) => a.colorSpace === "blue");
+		const greens = palette.filter((a) => a.colorSpace === "green");
+		const grays = palette.filter((a) => a.colorSpace === "gray");
+
+		const foregroundColor = palette.find(
+			(color) => color.key === "editor.foreground",
+		);
+		const backgroundColor = palette.find(
+			(color) => color.key === "editor.background",
+		);
+
+		yield* Effect.logInfo({
+			reds,
+			blues,
+			greens,
+			grays,
+			foregroundColor,
+			backgroundColor,
+		});
 
 		yield* Effect.logInfo("Successfully Discovered Palette");
 

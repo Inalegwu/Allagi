@@ -25,5 +25,5 @@ export const determineColorSpace = ({
 			? "green"
 			: b > r && b > g
 				? "blue"
-				: "gray";
+				: ("gray" as const);
 };
