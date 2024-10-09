@@ -49,8 +49,6 @@ const toHelix = Command.make(
 							.filter((value) => value.key === "editor.background")
 							.at(0);
 
-						console.log({ colors, background: background?.hex });
-
 						// yield* Console.log(schema);
 					}),
 				onNone: () =>

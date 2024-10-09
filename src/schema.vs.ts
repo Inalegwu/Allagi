@@ -30,4 +30,9 @@ export const VSCodeTheme = Schema.Struct({
 	author: Schema.String,
 	colors: Colors,
 	tokenColors: Token,
-});
+}).pipe(
+	Schema.annotations({
+		message: () => "Error marshalling to theme",
+		documentation: "TODO",
+	}),
+);
