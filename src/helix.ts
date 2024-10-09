@@ -46,6 +46,7 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 			}));
 
 		yield* Effect.logInfo("Successfully Discovered Palette");
+
 		yield* Effect.logInfo(
 			`Preparing to convert and save to ${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
 		);
