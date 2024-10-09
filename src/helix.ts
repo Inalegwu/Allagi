@@ -1,8 +1,14 @@
 import { Args, Command } from "@effect/cli";
-import { Effect, Array } from "effect";
+import { Effect, Array, Data } from "effect";
 import { VSCodeTheme } from "./schema.vs";
 import { Schema } from "@effect/schema";
 import { convertHexToRGB, determineColorSpace } from "./utils";
+import { TomlClient } from "./toml";
+import { HelixTheme } from "./schema.hx";
+
+class HelixError extends Data.TaggedError("helix-error")<{
+	cause: unknown;
+}> {}
 
 const inputPath = Args.path({
 	name: "Theme Path",
@@ -12,7 +18,7 @@ const outputPath = Args.path({
 	name: "Output Path",
 });
 
-const toHelix = Command.make(
+const helix = Command.make(
 	"helix",
 	{ inputPath, outputPath },
 	({ inputPath, outputPath }) =>
@@ -53,10 +59,14 @@ const toHelix = Command.make(
 			const greens = palette.filter((color) => color.colorSpace === "green");
 			const blues = palette.filter((color) => color.colorSpace === "blue");
 
-			yield* Effect.logInfo({ reds, greens, blues });
-
 			// yield* Console.log(schema);
-		}).pipe(Effect.tapError((error) => Effect.logError(error))),
+		}).pipe(
+			Effect.tapError((error) =>
+				Effect.logError(
+					`Error occured converting VSCode Theme to Helix ${error}`,
+				),
+			),
+		),
 );
 
-export default toHelix;
+export default helix;
