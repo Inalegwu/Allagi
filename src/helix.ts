@@ -1,10 +1,10 @@
 import { Args, Command } from "@effect/cli";
-import { Effect, Array } from "effect";
+import { Effect, Array, Record } from "effect";
 import { VSCodeTheme } from "./schema.vs";
 import { Schema } from "@effect/schema";
 import { convertHexToRGB, determineColorSpace } from "./utils";
 
-const vscodeThemePath = Args.path({
+const inputPath = Args.path({
 	name: "Theme Path",
 });
 
@@ -14,18 +14,16 @@ const outputPath = Args.path({
 
 const toHelix = Command.make(
 	"helix",
-	{ vscodeThemePath, outputPath },
-	({ vscodeThemePath, outputPath }) =>
+	{ inputPath, outputPath },
+	({ inputPath, outputPath }) =>
 		Effect.gen(function* () {
 			yield* Effect.logInfo(
-				`Attempting to Convert ${vscodeThemePath} to Helix Theme @${outputPath}`,
+				`Attempting to Convert ${inputPath} to Helix Theme @${outputPath}`,
 			);
 
-			const file = yield* Effect.tryPromise(() =>
-				Bun.file(vscodeThemePath).text(),
-			);
+			const file = yield* Effect.tryPromise(() => Bun.file(inputPath).text());
 
-			yield* Effect.logInfo("Parsing Theme File");
+			yield* Effect.logInfo("Reading Theme File");
 			const vscodeSchema = yield* Schema.decodeUnknown(VSCodeTheme)(
 				JSON.parse(file),
 				{
@@ -37,7 +35,7 @@ const toHelix = Command.make(
 				`Converting ${vscodeSchema.name} by ${vscodeSchema.author}`,
 			);
 
-			yield* Effect.logInfo("Discovering and marshalling colors");
+			yield* Effect.logInfo("Discovering Palette");
 			const colors = Array.fromRecord(vscodeSchema.colors)
 				.map((v) => ({
 					key: v[0],
