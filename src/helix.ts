@@ -25,18 +25,32 @@ const toHelix = Command.make(
 							Bun.file(themePath).text(),
 						);
 
-						const schema = yield* Schema.decodeUnknown(VSCodeTheme)(
+						const vscodeSchema = yield* Schema.decodeUnknown(VSCodeTheme)(
 							JSON.parse(file),
 							{
 								onExcessProperty: "ignore",
 							},
 						);
 
-						const colors = Array.fromRecord(schema.colors)
-							.map((v) => convertHexToRGB(v[1]))
-							.map((v) => determineColorSpace({ ...v }));
+						const colors = Array.fromRecord(vscodeSchema.colors)
+							.map((v) => ({
+								key: v[0],
+								rgb: convertHexToRGB(v[1]),
+								hex: v[1],
+							}))
+							.map((value) => ({
+								key: value.key,
+								rgb: value.rgb,
+								hex: value.hex,
+								colorSpace: determineColorSpace({ ...value.rgb }),
+							}));
 
-						console.log(colors);
+						const background = colors
+							.filter((value) => value.key === "editor.background")
+							.at(0);
+
+						console.log({ colors, background: background?.hex });
+
 						// yield* Console.log(schema);
 					}),
 				onNone: () =>
