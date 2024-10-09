@@ -3,7 +3,8 @@ import { Effect, Layer } from "effect";
 import pkg from "../package.json";
 import helix from "./helix";
 import { BunContext, BunRuntime } from "@effect/platform-bun";
-import { TomlClient } from "./toml";
+import { TomlClient } from "./parser/toml";
+import { JSONClient } from "./parser/json";
 
 const main = Command.make("allagi").pipe(Command.withSubcommands([helix]));
 
@@ -14,4 +15,8 @@ const program = Command.run(main, {
 
 const ProgramLive = Layer.merge(BunContext.layer, TomlClient.live);
 
-program(process.argv).pipe(Effect.provide(ProgramLive), BunRuntime.runMain);
+program(process.argv).pipe(
+	Effect.provide(ProgramLive),
+	Effect.provide(JSONClient.live),
+	BunRuntime.runMain,
+);

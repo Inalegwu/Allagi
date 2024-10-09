@@ -1,11 +1,10 @@
 import { Args, Command } from "@effect/cli";
-import { Effect, Array, Data } from "effect";
-import { VSCodeTheme } from "./schema.vs";
 import { Schema } from "@effect/schema";
+import { Array, Data, Effect } from "effect";
+import { VSCodeTheme } from "./schema.vs";
 import { convertHexToRGB, determineColorSpace } from "./utils";
-import { TomlClient } from "./toml";
-import { HelixTheme } from "./schema.hx";
 
+// @ts-ignore
 class HelixError extends Data.TaggedError("helix-error")<{
 	cause: unknown;
 }> {}
@@ -26,7 +25,6 @@ const helix = Command.make(
 			yield* Effect.logInfo(
 				`Attempting to Convert ${inputPath} to Helix Theme @${outputPath}`,
 			);
-
 			const file = yield* Effect.tryPromise(() => Bun.file(inputPath).text());
 
 			yield* Effect.logInfo("Reading Theme File");
