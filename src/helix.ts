@@ -1,13 +1,12 @@
 import { Args, Command } from "@effect/cli";
 import { Schema } from "@effect/schema";
-import { Array, Data, Effect } from "effect";
+import { Array, Effect } from "effect";
 import { VSCodeTheme } from "./schema.vs";
 import { convertHexToRGB, determineColorSpace } from "./utils";
 
-// @ts-ignore
-class HelixError extends Data.TaggedError("helix-error")<{
-	cause: unknown;
-}> {}
+// class HelixError extends Data.TaggedError("helix-error")<{
+// 	cause: unknown;
+// }> {}
 
 const inputPath = Args.path({
 	name: "Theme Path",

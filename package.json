@@ -4,7 +4,8 @@
 	"type": "module",
 	"version": "0.0.1",
 	"scripts": {
-		"build": "bun build --target=node --compile --minify --sourcemap --bytecode src/main.ts --outfile allagi"
+		"build": "bun build --target=node --compile --minify --sourcemap --bytecode src/main.ts --outfile allagi",
+		"dev": "bun run build && ./allagi helix ./test.json ./helix.toml"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.3",
