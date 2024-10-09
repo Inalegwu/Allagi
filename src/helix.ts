@@ -36,7 +36,7 @@ const toHelix = Command.make(
 			);
 
 			yield* Effect.logInfo("Discovering Palette");
-			const colors = Array.fromRecord(vscodeSchema.colors)
+			const palette = Array.fromRecord(vscodeSchema.colors)
 				.map((v) => ({
 					key: v[0],
 					rgb: convertHexToRGB(v[1]),
@@ -49,11 +49,7 @@ const toHelix = Command.make(
 					colorSpace: determineColorSpace({ ...value.rgb }),
 				}));
 
-			const background = colors
-				.filter((value) => value.key === "editor.background")
-				.at(0);
-
-			yield* Effect.logInfo({ background });
+			yield* Effect.logInfo({ palette });
 
 			// yield* Console.log(schema);
 		}).pipe(Effect.tapError((error) => Effect.logError(error))),
