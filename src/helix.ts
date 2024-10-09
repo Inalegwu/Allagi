@@ -20,10 +20,12 @@ const toHelix = Command.make(
 			yield* Effect.logInfo(
 				`Attempting to Convert ${vscodeThemePath} to Helix Theme @${outputPath}`,
 			);
+
 			const file = yield* Effect.tryPromise(() =>
 				Bun.file(vscodeThemePath).text(),
 			);
 
+			yield* Effect.logInfo("Parsing Theme File");
 			const vscodeSchema = yield* Schema.decodeUnknown(VSCodeTheme)(
 				JSON.parse(file),
 				{
@@ -31,6 +33,11 @@ const toHelix = Command.make(
 				},
 			);
 
+			yield* Effect.logInfo(
+				`Converting ${vscodeSchema.name} by ${vscodeSchema.author}`,
+			);
+
+			yield* Effect.logInfo("Discovering and marshalling colors");
 			const colors = Array.fromRecord(vscodeSchema.colors)
 				.map((v) => ({
 					key: v[0],
@@ -51,12 +58,7 @@ const toHelix = Command.make(
 			yield* Effect.logInfo({ background });
 
 			// yield* Console.log(schema);
-		}).pipe(
-			Effect.tapError((error) => Effect.logError(error)),
-			Effect.annotateLogs({
-				command: "helix",
-			}),
-		),
+		}).pipe(Effect.tapError((error) => Effect.logError(error))),
 );
 
 export default toHelix;
