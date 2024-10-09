@@ -1,5 +1,6 @@
 import { Args, Command } from "@effect/cli";
-import { Console, Effect, Option } from "effect";
+// biome-ignore lint/suspicious/noShadowRestrictedNames: useful
+import { Effect, Option, Array } from "effect";
 import { VSCodeTheme } from "./schema.vs";
 import { Schema } from "@effect/schema";
 import { convertHexToRGB, determineColorSpace } from "./utils";
@@ -31,20 +32,11 @@ const toHelix = Command.make(
 							},
 						);
 
-						const test = yield* Effect.try({
-							try: () => convertHexToRGB(schema.colors["editor.foreground"]),
-							catch: (error) =>
-								Effect.logError(`Error converting hex to RGB ${error}`),
-						});
+						const colors = Array.fromRecord(schema.colors)
+							.map((v) => convertHexToRGB(v[1]))
+							.map((v) => determineColorSpace({ ...v }));
 
-						const colorSpace = yield* Effect.try({
-							try: () => determineColorSpace({ ...test }),
-							catch: (error) =>
-								Effect.logError(`Error determining color space ${error}`),
-						});
-
-						console.log({ test, colorSpace });
-
+						console.log(colors);
 						// yield* Console.log(schema);
 					}),
 				onNone: () =>
