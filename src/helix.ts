@@ -83,18 +83,14 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 			.map((token) => {
 				if (typeof token.scope === "string") {
 					return {
-						[`${token.scope}`]: token.settings,
+						[`${token.scope}`]: `${token.settings.foreground}`,
 					};
 				}
 
 				if (Array.isArray(token.scope)) {
-					return {
-						null: "void",
-					};
+					return {};
 				}
-				return {
-					null: "void",
-				};
+				return {};
 			})
 			.reduce(
 				(acc, tok) => ({
@@ -102,8 +98,11 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 					...acc,
 					...tok,
 				}),
+				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 				{} as Record<string, any>,
 			);
+
+		yield* Effect.logInfo(scopes);
 
 		const newTheme = yield* Schema.encode(HelixTheme)({
 			...scopes,
@@ -118,8 +117,6 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 		});
 
 		const asToml = yield* toml.stringify({ ...newTheme });
-
-		console.log(asToml);
 
 		yield* Effect.try({
 			try: () =>
