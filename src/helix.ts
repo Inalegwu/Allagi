@@ -1,11 +1,11 @@
 import { Args, Command } from "@effect/cli";
 import { Schema } from "@effect/schema";
-import { Array, Effect, Data } from "effect";
+import { Array, Data, Effect } from "effect";
+import { JSONClient } from "./parser/json";
+import { HelixTheme } from "./schema.hx";
 import { VSCodeTheme } from "./schema.vs";
 import { convertHexToRGB, determineColorSpace } from "./utils";
 import { TomlClient } from "./parser/toml";
-import { HelixTheme } from "./schema.hx";
-import { JSONClient } from "./parser/json";
 
 class HelixError extends Data.TaggedError("helix-error")<{
 	cause: unknown;
@@ -17,8 +17,8 @@ const inputPath = Args.path({
 
 const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 	Effect.gen(function* () {
-		const toml = yield* TomlClient;
 		const json = yield* JSONClient;
+		const toml = yield* TomlClient;
 		yield* Effect.logInfo(`Attempting to Convert ${inputPath} to Helix Theme`);
 		const file = yield* Effect.tryPromise(() => Bun.file(inputPath).text());
 
@@ -73,23 +73,40 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 			(color) => color.key === "editor.background",
 		);
 
-		yield* Effect.logInfo({
-			reds,
-			blues,
-			greens,
-			grays,
-			foregroundColor,
-			backgroundColor,
-		});
-
 		yield* Effect.logInfo("Successfully Discovered Palette");
 
 		yield* Effect.logInfo(
 			`Preparing to convert and save to ${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
 		);
 
+		const scopes = vscodeSchema.tokenColors
+			.map((token) => {
+				if (typeof token.scope === "string") {
+					return {
+						[token.scope]: token.settings,
+					};
+				}
+
+				if (Array.isArray(token.scope)) {
+					return {
+						null: "void",
+					};
+				}
+				return {
+					null: "void",
+				};
+			})
+			.reduce(
+				(acc, tok) => ({
+					// biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+					...acc,
+					...tok,
+				}),
+				{} as Record<string, any>,
+			);
+
 		const newTheme = yield* Schema.encode(HelixTheme)({
-			scope: {},
+			...scopes,
 			palette: {
 				bg: backgroundColor?.hex!,
 				fg: foregroundColor?.hex!,
@@ -99,13 +116,15 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 			},
 		});
 
+		const asToml = yield* toml.parse(JSON.stringify(newTheme));
+
 		const asString = yield* json.stringify(newTheme);
 
 		yield* Effect.try({
 			try: () =>
 				Bun.write(
 					`${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
-					asString,
+					JSON.stringify(asToml),
 				),
 			catch: (error) => new HelixError({ cause: error }),
 		});

@@ -41,9 +41,20 @@ const Scope = Schema.Record({
 	value: ScopeValue,
 });
 
-export const HelixTheme = Schema.Struct({
-	scope: Scope,
-	palette: Palette,
+// export const HelixTheme = Schema.Struct({
+// 	scope: Scope,
+// 	palette: Palette,
+// });
+
+export const HelixTheme = Schema.Record({
+	key: Schema.String,
+	value: Schema.Union(
+		Schema.String,
+		Schema.Record({
+			key: Schema.String,
+			value: Schema.String,
+		}),
+	),
 });
 
 type HelixTheme = typeof HelixTheme.Type;
