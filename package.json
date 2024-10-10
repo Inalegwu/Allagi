@@ -20,6 +20,7 @@
 		"@effect/platform-bun": "^0.47.1",
 		"@effect/schema": "^0.75.1",
 		"effect": "^3.9.1",
+		"json2toml": "^6.1.1",
 		"smol-toml": "^1.3.0"
 	},
 	"trustedDependencies": ["@biomejs/biome"]

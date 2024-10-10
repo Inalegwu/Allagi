@@ -83,7 +83,7 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 			.map((token) => {
 				if (typeof token.scope === "string") {
 					return {
-						[token.scope]: token.settings,
+						[`${token.scope}`]: token.settings,
 					};
 				}
 
@@ -107,6 +107,7 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 
 		const newTheme = yield* Schema.encode(HelixTheme)({
 			...scopes,
+			"ui.selection": backgroundColor?.hex!,
 			palette: {
 				bg: backgroundColor?.hex!,
 				fg: foregroundColor?.hex!,
@@ -116,15 +117,15 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 			},
 		});
 
-		const asToml = yield* toml.parse(JSON.stringify(newTheme));
+		const asToml = yield* toml.stringify({ ...newTheme });
 
-		const asString = yield* json.stringify(newTheme);
+		console.log(asToml);
 
 		yield* Effect.try({
 			try: () =>
 				Bun.write(
 					`${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
-					JSON.stringify(asToml),
+					asToml,
 				),
 			catch: (error) => new HelixError({ cause: error }),
 		});

@@ -1,5 +1,6 @@
 import { Context, Effect, Layer, Data } from "effect";
 import TOML, { type TomlPrimitive } from "smol-toml";
+import TOToml from "json2toml";
 
 export class TomlError extends Data.TaggedError("TomlError")<{
 	cause: unknown;
@@ -9,7 +10,9 @@ type ITomlClient = Readonly<{
 	parse: (
 		value: string,
 	) => Effect.Effect<Record<string, TomlPrimitive>, TomlError, never>;
-	stringify: (value: TomlPrimitive) => Effect.Effect<string, TomlError, never>;
+	stringify: (
+		value: Record<string, any>,
+	) => Effect.Effect<string, TomlError, never>;
 }>;
 
 const make = Effect.gen(function* () {
@@ -19,9 +22,12 @@ const make = Effect.gen(function* () {
 			catch: (error) => new TomlError({ cause: error }),
 		});
 
-	const stringify = (value: TomlPrimitive) =>
+	const stringify = (value: Record<string, any>) =>
 		Effect.try({
-			try: () => TOML.stringify(value),
+			try: () =>
+				TOToml(value, {
+					newlineAfterSection: true,
+				}),
 			catch: (error) => new TomlError({ cause: error }),
 		});
 
