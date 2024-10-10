@@ -83,12 +83,20 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 			.map((token) => {
 				if (typeof token.scope === "string") {
 					return {
-						[`${token.scope}`]: `${token.settings.foreground}`,
+						[`${token.scope}`]: `{fg='${token.settings.foreground}',bg='${token.settings.background}'}`,
 					};
 				}
 
 				if (Array.isArray(token.scope)) {
-					return {};
+					return token.scope
+						.map((value) => ({
+							[`${token.scope?.[token.scope.indexOf(value)] || ""}`]: `${token.settings}`,
+						}))
+						.reduce((acc, tok) => ({
+							// biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+							...acc,
+							...tok,
+						}));
 				}
 				return {};
 			})
