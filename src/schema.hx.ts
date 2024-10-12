@@ -41,21 +41,22 @@ const Scope = Schema.Record({
 	value: ScopeValue,
 });
 
-// export const HelixTheme = Schema.Struct({
-// 	scope: Scope,
-// 	palette: Palette,
-// });
-
-export const HelixTheme = Schema.Record({
-	key: Schema.String,
-	value: Schema.Union(
-		Schema.String,
-		Schema.Record({
-			key: Schema.String,
-			value: Schema.String,
-		}),
-	),
+export const HelixTheme = Schema.Struct({
+	scope: Scope,
+	palette: Palette,
+	"ui.background": Schema.String,
 });
 
-type HelixTheme = typeof HelixTheme.Type;
-type Palette = typeof Palette.Type;
+// export const HelixTheme = Schema.Record({
+// 	key: Schema.String,
+// 	value: Schema.Union(
+// 		Schema.String,
+// 		Schema.Record({
+// 			key: Schema.String,
+// 			value: Schema.String,
+// 		}),
+// 	),
+// });
+
+export type HelixTheme = typeof HelixTheme.Type;
+export type Palette = typeof Palette.Type;

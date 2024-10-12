@@ -2,7 +2,7 @@ import { Args, Command } from "@effect/cli";
 import { Schema } from "@effect/schema";
 import { Array, Data, Effect } from "effect";
 import { JSONClient } from "./parser/json";
-import { HelixTheme } from "./schema.hx";
+import { HelixTheme, type HelixTheme as HXTheme } from "./schema.hx";
 import { VSCodeTheme } from "./schema.vs";
 import { convertHexToRGB, determineColorSpace } from "./utils";
 import { TomlClient } from "./parser/toml";
@@ -17,7 +17,6 @@ const inputPath = Args.path({
 
 const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 	Effect.gen(function* () {
-		const json = yield* JSONClient;
 		const toml = yield* TomlClient;
 		yield* Effect.logInfo(`Attempting to Convert ${inputPath} to Helix Theme`);
 		const file = yield* Effect.tryPromise(() => Bun.file(inputPath).text());
@@ -79,50 +78,9 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 			`Preparing to convert and save to ${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
 		);
 
-		const scopes = vscodeSchema.tokenColors
-			.map((token) => {
-				if (typeof token.scope === "string") {
-					return {
-						[`${token.scope}`]: `{fg='${token.settings.foreground}',bg='${token.settings.background}'}`,
-					};
-				}
-
-				if (Array.isArray(token.scope)) {
-					return token.scope
-						.map((value) => ({
-							[`${token.scope?.[token.scope.indexOf(value)] || ""}`]: `${token.settings}`,
-						}))
-						.reduce((acc, tok) => ({
-							// biome-ignore lint/performance/noAccumulatingSpread: <explanation>
-							...acc,
-							...tok,
-						}));
-				}
-				return {};
-			})
-			.reduce(
-				(acc, tok) => ({
-					// biome-ignore lint/performance/noAccumulatingSpread: <explanation>
-					...acc,
-					...tok,
-				}),
-				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-				{} as Record<string, any>,
-			);
-
-		yield* Effect.logInfo(scopes);
-
-		const newTheme = yield* Schema.encode(HelixTheme)({
-			...scopes,
-			"ui.selection": backgroundColor?.hex!,
-			palette: {
-				bg: backgroundColor?.hex!,
-				fg: foregroundColor?.hex!,
-				red: red.hex,
-				green: green.hex,
-				blue: blue.hex,
-			},
-		});
+		// TODO
+		// @ts-ignore: todo
+		const newTheme = yield* Schema.encode(HelixTheme)({});
 
 		const asToml = yield* toml.stringify({ ...newTheme });
 

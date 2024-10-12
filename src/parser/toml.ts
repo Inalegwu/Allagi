@@ -11,7 +11,7 @@ type ITomlClient = Readonly<{
 		value: string,
 	) => Effect.Effect<Record<string, TomlPrimitive>, TomlError, never>;
 	stringify: (
-		value: Record<string, any>,
+		value: Record<string, unknown>,
 	) => Effect.Effect<string, TomlError, never>;
 }>;
 
@@ -22,7 +22,7 @@ const make = Effect.gen(function* () {
 			catch: (error) => new TomlError({ cause: error }),
 		});
 
-	const stringify = (value: Record<string, any>) =>
+	const stringify = (value: Record<string, unknown>) =>
 		Effect.try({
 			try: () =>
 				TOToml(value, {
