@@ -3,7 +3,7 @@ import { Schema } from "@effect/schema";
 import { Array, Data, Effect } from "effect";
 import { convertHexToRGB, determineColorSpace } from "@/utils";
 import { TomlClient } from "@/parser";
-import { HelixTheme, VSCodeTheme, type UIPalette } from "@/schema/index";
+import { HelixTheme, VSCodeTheme } from "@/schema/index";
 
 class HelixError extends Data.TaggedError("helix-error")<{
 	cause: unknown;
@@ -82,8 +82,31 @@ const helix = Command.make(
 				`Preparing to convert and save to ${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
 			);
 
-			// TODO: fully expand and figure out how to achieve key={key=value,key=value} syntax
-			// // @ts-expect-error
+			const scopes = vscodeSchema.tokenColors
+				.map((scope) => {
+					if (typeof scope.scope === "string") {
+						return {
+							[`${scope.scope}`]: `${scope.settings}`,
+						};
+					}
+
+					if (Array.isArray(scope.scope)) {
+						return scope.scope.map((title) => ({
+							[`${title}`]: `${scope.settings}`,
+						}));
+					}
+
+					return {
+						[`${scope.scope}`]: `${scope.settings}`,
+					};
+				})
+				.reduce(
+					(prev, curr) => ({ ...prev, ...curr }),
+					{} as Record<string, unknown>,
+				);
+
+			yield* Effect.log(scopes);
+
 			const newTheme = yield* Schema.encode(HelixTheme)({
 				"ui.background": {
 					bg: transparent ? "" : backgroundColor?.hex || "",
@@ -103,7 +126,7 @@ const helix = Command.make(
 
 			const asToml = yield* toml.stringify(newTheme);
 
-			yield* Effect.try({
+			yield* Effect.tryPromise({
 				try: () =>
 					Bun.write(
 						`${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
