@@ -13,105 +13,110 @@ const inputPath = Args.path({
 	name: "Theme Path",
 });
 
-const transparent = Options.boolean("make-transparent");
+const transparent = Options.boolean("transparent");
 
-const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
-	Effect.gen(function* () {
-		const toml = yield* TomlClient;
-		yield* Effect.logInfo(`Attempting to Convert ${inputPath} to Helix Theme`);
-		const file = yield* Effect.tryPromise(() => Bun.file(inputPath).text());
+const helix = Command.make(
+	"helix",
+	{ inputPath, transparent },
+	({ inputPath, transparent }) =>
+		Effect.gen(function* () {
+			const toml = yield* TomlClient;
+			yield* Effect.logInfo(
+				`Attempting to Convert ${inputPath} to Helix Theme`,
+			);
+			const file = yield* Effect.tryPromise(() => Bun.file(inputPath).text());
 
-		yield* Effect.logInfo("Reading Theme File");
-		const vscodeSchema = yield* Schema.decodeUnknown(VSCodeTheme)(
-			JSON.parse(file),
-			{
-				onExcessProperty: "ignore",
-			},
-		);
-
-		yield* Effect.logInfo(
-			`Converting ${vscodeSchema.name} by ${vscodeSchema.author}`,
-		);
-
-		yield* Effect.logInfo("Discovering Palette");
-		const palette = Array.fromRecord(vscodeSchema.colors)
-			.map((v) => ({
-				key: v[0],
-				rgb: convertHexToRGB(v[1]),
-				hex: v[1],
-			}))
-			.map(
-				(value) =>
-					({
-						key: value.key,
-						rgb: value.rgb,
-						hex: value.hex,
-						colorSpace: determineColorSpace({ ...value.rgb }),
-					}) as const,
+			yield* Effect.logInfo("Reading Theme File");
+			const vscodeSchema = yield* Schema.decodeUnknown(VSCodeTheme)(
+				JSON.parse(file),
+				{
+					onExcessProperty: "ignore",
+				},
 			);
 
-		const reds = palette.filter((a) => a.colorSpace === "red");
-		const blues = palette.filter((a) => a.colorSpace === "blue");
-		const greens = palette.filter((a) => a.colorSpace === "green");
+			yield* Effect.logInfo(
+				`Converting ${vscodeSchema.name} by ${vscodeSchema.author}`,
+			);
 
-		const red = reds.reduce((prev, next) =>
-			prev.rgb.r < next.rgb.r ? next : prev,
-		);
-		const green = greens.reduce((prev, next) =>
-			prev.rgb.g < next.rgb.g ? next : prev,
-		);
-		const blue = blues.reduce((prev, next) =>
-			prev.rgb.b < next.rgb.b ? next : prev,
-		);
+			yield* Effect.logInfo("Discovering Palette");
+			const palette = Array.fromRecord(vscodeSchema.colors)
+				.map((v) => ({
+					key: v[0],
+					rgb: convertHexToRGB(v[1]),
+					hex: v[1],
+				}))
+				.map(
+					(value) =>
+						({
+							key: value.key,
+							rgb: value.rgb,
+							hex: value.hex,
+							colorSpace: determineColorSpace({ ...value.rgb }),
+						}) as const,
+				);
 
-		const foregroundColor = palette.find(
-			(color) => color.key === "editor.foreground",
-		);
-		const backgroundColor = palette.find(
-			(color) => color.key === "editor.background",
-		);
+			const reds = palette.filter((a) => a.colorSpace === "red");
+			const blues = palette.filter((a) => a.colorSpace === "blue");
+			const greens = palette.filter((a) => a.colorSpace === "green");
 
-		yield* Effect.logInfo("Successfully Discovered Palette");
+			const red = reds.reduce((prev, next) =>
+				prev.rgb.r < next.rgb.r ? next : prev,
+			);
+			const green = greens.reduce((prev, next) =>
+				prev.rgb.g < next.rgb.g ? next : prev,
+			);
+			const blue = blues.reduce((prev, next) =>
+				prev.rgb.b < next.rgb.b ? next : prev,
+			);
 
-		yield* Effect.logInfo(
-			`Preparing to convert and save to ${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
-		);
+			const foregroundColor = palette.find(
+				(color) => color.key === "editor.foreground",
+			);
+			const backgroundColor = palette.find(
+				(color) => color.key === "editor.background",
+			);
 
-		// TODO: fully expand
-		const newTheme = yield* Schema.encode(HelixTheme)({
-			scope: {},
-			"ui.background": {
-				bg: backgroundColor?.hex!,
-				fg: foregroundColor?.hex!,
-			},
-			palette: {
-				red: red.hex,
-				green: green.hex,
-				blue: blue.hex,
-			},
-		});
+			yield* Effect.logInfo("Successfully Discovered Palette");
 
-		const asToml = yield* toml.stringify({ ...newTheme });
+			yield* Effect.logInfo(
+				`Preparing to convert and save to ${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
+			);
 
-		yield* Effect.try({
-			try: () =>
-				Bun.write(
-					`${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
-					asToml,
+			// TODO: fully expand
+			const newTheme = yield* Schema.encode(HelixTheme)({
+				scope: {},
+				"ui.background": {
+					bg: transparent ? undefined : backgroundColor?.hex || "",
+					fg: foregroundColor?.hex || "",
+				},
+				palette: {
+					red: red.hex,
+					green: green.hex,
+					blue: blue.hex,
+				},
+			});
+
+			const asToml = yield* toml.stringify({ ...newTheme });
+
+			yield* Effect.try({
+				try: () =>
+					Bun.write(
+						`${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
+						asToml,
+					),
+				catch: (error) => new HelixError({ cause: error }),
+			});
+		}).pipe(
+			Effect.tapError((error) =>
+				Effect.logError(
+					`Error occured converting VSCode Theme to Helix ${error}`,
+				).pipe(
+					Effect.annotateLogs({
+						command: "helix",
+					}),
 				),
-			catch: (error) => new HelixError({ cause: error }),
-		});
-	}).pipe(
-		Effect.tapError((error) =>
-			Effect.logError(
-				`Error occured converting VSCode Theme to Helix ${error}`,
-			).pipe(
-				Effect.annotateLogs({
-					command: "helix",
-				}),
 			),
 		),
-	),
 );
 
 export default helix;
