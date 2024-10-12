@@ -6,7 +6,9 @@
 	"scripts": {
 		"build": "bun build --target=node --compile --minify --sourcemap --bytecode src/main.ts --outfile allagi",
 		"dev": "bun run build && ./allagi helix ./test.json",
-		"dev:transparent": "bun run build && ./allagi helix --transparent=true ./test.json"
+		"dev:transparent": "bun run build && ./allagi helix --transparent=true ./test.json",
+		"lint:check": "biome lint ./src",
+		"lint:format": "biome format --write ./src"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.3",

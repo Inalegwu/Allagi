@@ -101,6 +101,7 @@ const helix = Command.make(
 					};
 				})
 				.reduce(
+					// biome-ignore lint/performance/noAccumulatingSpread: <explanation>
 					(prev, curr) => ({ ...prev, ...curr }),
 					{} as Record<string, unknown>,
 				);
