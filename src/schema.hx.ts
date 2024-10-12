@@ -44,7 +44,15 @@ const Scope = Schema.Record({
 export const HelixTheme = Schema.Struct({
 	scope: Scope,
 	palette: Palette,
-	"ui.background": Schema.String,
+	"ui.background": Schema.Struct({
+		background: Schema.String.pipe(Schema.optional),
+		foreground: Schema.String,
+	}).pipe(
+		Schema.rename({
+			background: "bg",
+			foreground: "fg",
+		}),
+	),
 });
 
 // export const HelixTheme = Schema.Record({

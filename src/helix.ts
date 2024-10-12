@@ -1,4 +1,4 @@
-import { Args, Command } from "@effect/cli";
+import { Args, Command, Options } from "@effect/cli";
 import { Schema } from "@effect/schema";
 import { Array, Data, Effect } from "effect";
 import { JSONClient } from "./parser/json";
@@ -14,6 +14,8 @@ class HelixError extends Data.TaggedError("helix-error")<{
 const inputPath = Args.path({
 	name: "Theme Path",
 });
+
+const transparent = Options.boolean("make-transparent");
 
 const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 	Effect.gen(function* () {
@@ -79,8 +81,14 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 		);
 
 		// TODO
-		// @ts-ignore: todo
-		const newTheme = yield* Schema.encode(HelixTheme)({});
+		// @ts-expect-error: todo
+		const newTheme = yield* Schema.encode(HelixTheme)({
+			scope: {},
+			"ui.background": {
+				bg: backgroundColor?.hex!,
+				fg: foregroundColor?.hex!,
+			},
+		});
 
 		const asToml = yield* toml.stringify({ ...newTheme });
 
