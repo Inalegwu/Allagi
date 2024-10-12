@@ -16,13 +16,13 @@ const Modifiers = Literal(
 const Style = Literal("line", "curl", "dashed", "dotted", "double_line");
 
 const ScopeParam = Struct({
-	foreground: String,
-	background: String,
+	foreground: String.pipe(Schema.optional),
+	background: String.pipe(Schema.optional),
 	underline: Struct({
 		color: String,
 		style: Style,
 	}).pipe(Schema.optional),
-	modifiers: Array(Modifiers),
+	modifiers: Array(Modifiers).pipe(Schema.optional),
 }).pipe(
 	Schema.rename({
 		foreground: "fg",
@@ -72,19 +72,44 @@ const Scope = Record({
 	value: ScopeParam,
 });
 
-export const HelixTheme = Struct({
-	scope: Scope,
-	palette: Palette,
-	"ui.background": Struct({
-		background: String.pipe(Schema.optional),
-		foreground: String,
-	}).pipe(
-		Schema.rename({
-			background: "bg",
-			foreground: "fg",
-		}),
-	),
-});
+export const HelixTheme = Union(
+	Record({
+		key: String,
+		value: ScopeParam,
+	}),
+	Struct({
+		palette: Palette,
+		"ui.background": Struct({
+			background: String.pipe(Schema.optional),
+			foreground: String,
+		}).pipe(
+			Schema.rename({
+				background: "bg",
+				foreground: "fg",
+			}),
+		),
+		"ui.selection": Struct({
+			background: String.pipe(Schema.optional),
+			foreground: String,
+		}).pipe(
+			Schema.rename({
+				background: "bg",
+				foreground: "fg",
+			}),
+		),
+		// "ui.background": String,
+	}),
+);
+
+const uiPalette = Struct({
+	background: String.pipe(Schema.optional),
+	foreground: String,
+}).pipe(
+	Schema.rename({
+		background: "bg",
+		foreground: "fg",
+	}),
+);
 
 // export const HelixTheme = Schema.Record({
 // 	key: Schema.String,
@@ -99,3 +124,4 @@ export const HelixTheme = Struct({
 
 export type HelixTheme = typeof HelixTheme.Type;
 export type Palette = typeof Palette.Type;
+export type UIPalette = typeof uiPalette.Type;

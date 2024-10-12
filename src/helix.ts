@@ -3,7 +3,7 @@ import { Schema } from "@effect/schema";
 import { Array, Data, Effect } from "effect";
 import { convertHexToRGB, determineColorSpace } from "@/utils";
 import { TomlClient } from "@/parser";
-import { HelixTheme, VSCodeTheme } from "@/schema/index";
+import { HelixTheme, VSCodeTheme, type UIPalette } from "@/schema/index";
 
 class HelixError extends Data.TaggedError("helix-error")<{
 	cause: unknown;
@@ -82,12 +82,15 @@ const helix = Command.make(
 				`Preparing to convert and save to ${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
 			);
 
-			// TODO: fully expand
+			// TODO: fully expand and figure out how to achieve key={key=value,key=value} syntax
+			// // @ts-expect-error
 			const newTheme = yield* Schema.encode(HelixTheme)({
-				scope: {},
 				"ui.background": {
-					bg: transparent ? undefined : backgroundColor?.hex || "",
+					bg: transparent ? "" : backgroundColor?.hex || "",
 					fg: foregroundColor?.hex || "",
+				},
+				"ui.selection": {
+					fg: backgroundColor?.hex || "",
 				},
 				palette: {
 					red: red.hex,
@@ -96,7 +99,9 @@ const helix = Command.make(
 				},
 			});
 
-			const asToml = yield* toml.stringify({ ...newTheme });
+			yield* Effect.log(newTheme);
+
+			const asToml = yield* toml.stringify(newTheme);
 
 			yield* Effect.try({
 				try: () =>
