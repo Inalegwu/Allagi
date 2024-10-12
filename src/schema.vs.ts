@@ -1,9 +1,10 @@
 import { Schema } from "@effect/schema";
+import { Struct, Array, Literal, String, Union } from "@/schema";
 
-const VSCodeScopeSetting = Schema.Struct({
-	foreground: Schema.String.pipe(Schema.optional),
-	background: Schema.String.pipe(Schema.optional),
-	fontFamily: Schema.String.pipe(Schema.optional),
+const VSCodeScopeSetting = Struct({
+	foreground: String.pipe(Schema.optional),
+	background: String.pipe(Schema.optional),
+	fontFamily: String.pipe(Schema.optional),
 }).pipe(
 	Schema.rename({
 		fontFamily: "font_family",
@@ -11,21 +12,21 @@ const VSCodeScopeSetting = Schema.Struct({
 );
 
 export const Colors = Schema.Record({
-	key: Schema.String,
-	value: Schema.String,
+	key: String,
+	value: String,
 });
 
-const MultipleSchema = Schema.Array(Schema.String);
-const SingleSchema = Schema.String;
+const MultipleSchema = Array(Schema.String);
+const SingleSchema = String;
 
-export const VSCodeHighlightSchema = Schema.Struct({
-	scope: Schema.Union(MultipleSchema, SingleSchema).pipe(Schema.optional),
+export const VSCodeHighlightSchema = Struct({
+	scope: Union(MultipleSchema, SingleSchema).pipe(Schema.optional),
 	settings: VSCodeScopeSetting,
 });
 
-export const Token = Schema.Array(VSCodeHighlightSchema);
+export const Token = Array(VSCodeHighlightSchema);
 
-export const VSCodeTheme = Schema.Struct({
+export const VSCodeTheme = Struct({
 	name: Schema.String,
 	author: Schema.String,
 	colors: Colors,

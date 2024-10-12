@@ -1,6 +1,7 @@
+import { Array, Literal, Record, String, Struct, Union } from "@/schema";
 import { Schema } from "@effect/schema";
 
-const Modifiers = Schema.Literal(
+const Modifiers = Literal(
 	"bold",
 	"dim",
 	"italic",
@@ -12,16 +13,16 @@ const Modifiers = Schema.Literal(
 	"crossed_out",
 );
 
-const Style = Schema.Literal("line", "curl", "dashed", "dotted", "double_line");
+const Style = Literal("line", "curl", "dashed", "dotted", "double_line");
 
-const ScopeParam = Schema.Struct({
-	foreground: Schema.String,
-	background: Schema.String,
-	underline: Schema.Struct({
-		color: Schema.String,
+const ScopeParam = Struct({
+	foreground: String,
+	background: String,
+	underline: Struct({
+		color: String,
 		style: Style,
 	}).pipe(Schema.optional),
-	modifiers: Schema.Array(Modifiers),
+	modifiers: Array(Modifiers),
 }).pipe(
 	Schema.rename({
 		foreground: "fg",
@@ -29,24 +30,54 @@ const ScopeParam = Schema.Struct({
 	}),
 );
 
-const ScopeValue = Schema.Union(Schema.String, ScopeParam);
+// const ScopeValue = Schema.Union(Schema.String, ScopeParam);
 
-const Palette = Schema.Record({
-	key: Schema.String,
-	value: Schema.String,
+const Palette = Union(
+	Record({
+		key: String,
+		value: String,
+	}),
+	Struct({
+		default: String,
+		black: String,
+		red: String,
+		green: String,
+		blue: String,
+		yellow: String.pipe(Schema.optional),
+		magenta: String.pipe(Schema.optional),
+		cyan: String.pipe(Schema.optional),
+		gray: String.pipe(Schema.optional),
+		lightRed: String.pipe(Schema.optional),
+		lightGreen: String.pipe(Schema.optional),
+		lightYellow: String.pipe(Schema.optional),
+		lightBlue: String.pipe(Schema.optional),
+		lightMagenta: String.pipe(Schema.optional),
+		lightCyan: String.pipe(Schema.optional),
+		lightGray: String.pipe(Schema.optional),
+		white: String,
+	}).pipe(
+		Schema.rename({
+			lightBlue: "light-blue",
+			lightRed: "light-red",
+			lightYellow: "light-yellow",
+			lightGreen: "light-green",
+			lightCyan: "light-cyan",
+			lightGray: "light-gray",
+		}),
+	),
+);
+
+const Scope = Record({
+	key: String,
+	value: ScopeParam,
 });
 
-const Scope = Schema.Record({
-	key: Schema.String,
-	value: ScopeValue,
-});
-
-export const HelixTheme = Schema.Struct({
+export const HelixTheme = Struct({
 	scope: Scope,
 	palette: Palette,
-	"ui.background": Schema.Struct({
-		background: Schema.String.pipe(Schema.optional),
-		foreground: Schema.String,
+	"ui.background": Struct({
+		background: String.pipe(Schema.optional),
+		foreground: String,
 	}).pipe(
 		Schema.rename({
 			background: "bg",

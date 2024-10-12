@@ -80,13 +80,17 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 			`Preparing to convert and save to ${vscodeSchema.name.toLowerCase().split(" ").join("_")}.toml`,
 		);
 
-		// TODO
-		// @ts-expect-error: todo
+		// TODO: fully expand
 		const newTheme = yield* Schema.encode(HelixTheme)({
 			scope: {},
 			"ui.background": {
 				bg: backgroundColor?.hex!,
 				fg: foregroundColor?.hex!,
+			},
+			palette: {
+				red: red.hex,
+				green: green.hex,
+				blue: blue.hex,
 			},
 		});
 
