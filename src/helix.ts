@@ -1,11 +1,9 @@
 import { Args, Command, Options } from "@effect/cli";
 import { Schema } from "@effect/schema";
 import { Array, Data, Effect } from "effect";
-import { JSONClient } from "./parser/json";
-import { HelixTheme, type HelixTheme as HXTheme } from "./schema.hx";
-import { VSCodeTheme } from "./schema.vs";
-import { convertHexToRGB, determineColorSpace } from "./utils";
-import { TomlClient } from "./parser/toml";
+import { convertHexToRGB, determineColorSpace } from "@/utils";
+import { TomlClient } from "@/parser";
+import { HelixTheme, VSCodeTheme } from "@/schema/index";
 
 class HelixError extends Data.TaggedError("helix-error")<{
 	cause: unknown;
@@ -55,7 +53,6 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 		const reds = palette.filter((a) => a.colorSpace === "red");
 		const blues = palette.filter((a) => a.colorSpace === "blue");
 		const greens = palette.filter((a) => a.colorSpace === "green");
-		const grays = palette.filter((a) => a.colorSpace === "gray");
 
 		const red = reds.reduce((prev, next) =>
 			prev.rgb.r < next.rgb.r ? next : prev,
@@ -63,7 +60,7 @@ const helix = Command.make("helix", { inputPath }, ({ inputPath }) =>
 		const green = greens.reduce((prev, next) =>
 			prev.rgb.g < next.rgb.g ? next : prev,
 		);
-		const blue = reds.reduce((prev, next) =>
+		const blue = blues.reduce((prev, next) =>
 			prev.rgb.b < next.rgb.b ? next : prev,
 		);
 

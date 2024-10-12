@@ -1,5 +1,5 @@
 import { Schema } from "@effect/schema";
-import { Struct, Array, Literal, String, Union } from "@/schema";
+import { Struct, Array, String, Union } from "@/schema";
 
 const VSCodeScopeSetting = Struct({
 	foreground: String.pipe(Schema.optional),
