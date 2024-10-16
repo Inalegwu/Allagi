@@ -3,7 +3,7 @@ import { Schema } from "@effect/schema";
 import { Array, Data, Effect } from "effect";
 import { convertHexToRGB, determineColorSpace } from "@/utils";
 import { TomlClient } from "@/parser";
-import { HelixTheme, VSCodeTheme } from "@/schema/index";
+import { HelixTheme, VSCodeTheme, type ScopeParam } from "@/schema/index";
 
 class HelixError extends Data.TaggedError("helix-error")<{
 	cause: unknown;
@@ -21,12 +21,15 @@ const helix = Command.make(
 	({ inputPath, transparent }) =>
 		Effect.gen(function* () {
 			const toml = yield* TomlClient;
+
 			yield* Effect.logInfo(
 				`Attempting to Convert ${inputPath} to Helix Theme`,
 			);
+
 			const file = yield* Effect.tryPromise(() => Bun.file(inputPath).text());
 
 			yield* Effect.logInfo("Reading Theme File");
+
 			const vscodeSchema = yield* Schema.decodeUnknown(VSCodeTheme)(
 				JSON.parse(file),
 				{
@@ -84,31 +87,42 @@ const helix = Command.make(
 
 			const scopes = vscodeSchema.tokenColors
 				.map((scope) => {
+					console.log(scope);
 					if (typeof scope.scope === "string") {
 						return {
-							[`${scope.scope}`]: `${scope.settings}`,
+							[`${scope.scope}`]: {
+								fg: scope.settings.foreground || "",
+								bg: scope.settings.background || "",
+							} satisfies ScopeParam,
 						};
 					}
 
 					if (Array.isArray(scope.scope)) {
-						return scope.scope.map((title) => ({
-							[`${title}`]: `${scope.settings}`,
-						}));
+						return (
+							scope.scope
+								.map((title) => ({
+									[`${title}`]: {
+										fg: scope.settings.foreground || "",
+										bg: scope.settings.background || "",
+									} satisfies ScopeParam,
+								}))
+								// biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+								.reduce((acc, nxt) => ({ ...acc, ...nxt }))
+						);
 					}
 
 					return {
-						[`${scope.scope}`]: `${scope.settings}`,
+						[`${scope.scope}`]: {
+							fg: scope.settings.foreground || "",
+							bg: scope.settings.background || "",
+						} satisfies ScopeParam,
 					};
 				})
-				.reduce(
-					// biome-ignore lint/performance/noAccumulatingSpread: <explanation>
-					(prev, curr) => ({ ...prev, ...curr }),
-					{} as Record<string, unknown>,
-				);
-
-			yield* Effect.log(scopes);
+				// biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+				.reduce((acc, nxt) => ({ ...acc, ...nxt }));
 
 			const newTheme = yield* Schema.encode(HelixTheme)({
+				...scopes,
 				"ui.background": {
 					bg: transparent ? "" : backgroundColor?.hex || "",
 					fg: foregroundColor?.hex || "",
@@ -135,6 +149,8 @@ const helix = Command.make(
 					),
 				catch: (error) => new HelixError({ cause: error }),
 			});
+
+			yield* Effect.log("Saved converted theme successfully");
 		}).pipe(
 			Effect.tapError((error) =>
 				Effect.logError(

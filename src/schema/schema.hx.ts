@@ -73,10 +73,7 @@ const Scope = Record({
 });
 
 export const HelixTheme = Union(
-	Record({
-		key: String,
-		value: ScopeParam,
-	}),
+	Scope,
 	Struct({
 		palette: Palette,
 		"ui.background": Struct({
@@ -125,3 +122,4 @@ const uiPalette = Struct({
 export type HelixTheme = typeof HelixTheme.Type;
 export type Palette = typeof Palette.Type;
 export type UIPalette = typeof uiPalette.Type;
+export type ScopeParam = typeof ScopeParam.Type;
